@@ -34,8 +34,7 @@ async function recupererSeries() {
         series = data;
         console.log(series);
         localStorage.setItem("series", JSON.stringify(series));
-        afficherSeries(series);
-        afficherGenres();
+        afficher(series);
     }
     catch(error){
         message_erreur_api.textContent = "Impossible de charger les séries.";
@@ -45,8 +44,7 @@ async function recupererSeries() {
 }
 series = JSON.parse(localStorage.getItem("series"));
 if (series) {
-    afficherSeries(rechercher_filtrer(series));
-    afficherGenres();
+    afficher(rechercher_filtrer(series));
 } else {
     recupererSeries();
 }
@@ -61,9 +59,7 @@ function afficherGenres() {
             }
         });
     });
-
     genres.sort();
-
     genres.forEach((genre) => {
         let option = document.createElement("option");
         option.value = genre;
@@ -72,21 +68,21 @@ function afficherGenres() {
     });
 }
 
-function afficherSeries(liste) {
+function afficher(liste) {
     liste_series.innerHTML = "";
-    nombre_series.textContent = liste.length + " séries affichées";
-
+    
     if (liste.length === 0) {
         etat_vide.hidden = false;
         pagination.hidden = true;
         return;
     }
     etat_vide.hidden = true;
-
+    
     let total_pages = Math.ceil(liste.length / 15);
     let debut = (page - 1) * 15;
     let fin = debut + 15;
     let series_page = liste.slice(debut, fin);
+    nombre_series.textContent = series_page.length + " séries affichées";
 
     series_page.forEach((serie) => {
         let description = serie.summary || "Aucune description disponible";
@@ -138,19 +134,20 @@ function afficherSeries(liste) {
 
     btn_precedent.classList.toggle("opacity-40", page === 1);
     btn_suivant.classList.toggle("opacity-40", page === total_pages);
+    afficherGenres();
 }
 btn_suivant.addEventListener("click", () => {
     page++;
-    afficherSeries(rechercher_filtrer(series));
+    afficher(rechercher_filtrer(series));
 });
 
 btn_precedent.addEventListener("click", () => {
     page--;
-    afficherSeries(rechercher_filtrer(series));
+    afficher(rechercher_filtrer(series));
 });
 recherche.addEventListener("input", () => {
     page = 1;
-    afficherSeries(rechercher_filtrer(series));
+    afficher(rechercher_filtrer(series));
 });
 function rechercher(liste) {
     let text = recherche.value.trim().toLowerCase();
@@ -159,7 +156,7 @@ function rechercher(liste) {
 }
 filtre_genre.addEventListener("change",()=>{
     page=1;
-    afficherSeries(rechercher_filtrer(series));
+    afficher(rechercher_filtrer(series));
 })
 function filtrer(liste) {
     let genre = filtre_genre.value;
@@ -177,7 +174,70 @@ function rechercher_filtrer(series) {
 btn_reinitialiser.addEventListener("click",()=>{
     recherche.value = "";
     filtre_genre.value = "";
-    afficherSeries(series);
+    afficher(series);
 })
+function afficherErreur(input, erreur, message) {
+    erreur.textContent = message;
+    input.classList.remove("border-[#383838]");
+    input.classList.add("border-red-500");
+}
+function supprimerErreur(input, erreur) {
+    erreur.textContent = "";
+    input.classList.remove("border-red-500");
+    input.classList.add("border-[#383838]");
+}
+function validation() {
+    let valide = true;
+    supprimerErreur(titre, erreur_titre);
+    supprimerErreur(genre_serie, erreur_genre);
+    supprimerErreur(image_serie, erreur_image);
 
+    let nom = titre.value.trim();
+
+    if (nom === "" || nom.length < 2 || nom.length > 60) {
+        afficherErreur(titre, erreur_titre, "Le nom de la série est obligatoire et doit contenir entre 2 et 60 caractères");
+        valide = false;
+    }
+    let texte_genres = genre_serie.value.trim();
+    let genres = texte_genres.split(",").map((genre) => genre.trim());
+
+    if (texte_genres === "") {
+        afficherErreur(genre_serie, erreur_genre, "Veuillez saisir au moins un genre.");
+        valide = false;
+    }else if (genres.some((genre) => genre === "") || genres.some((genre) => genre.length < 2) || genres.some((genre) => !/^[\p{L}\s'-]+$/u.test(genre))) {
+        afficherErreur(genre_serie, erreur_genre, "Chaque genre doit contenir au moins 2 caractères et Séparez les genres par des virgules");
+        valide = false;
+    }
+    let fichiers = image_serie.files;
+
+    if (fichiers.length === 0) {
+        afficherErreur(image_serie, erreur_image, "Veuillez sélectionner une image.");
+        valide = false;
+    } else {
+        let fichier = fichiers[0];
+        let taille_max = 2 * 1024 * 1024;
+        if (fichier.size > taille_max) {
+            afficherErreur(image_serie, erreur_image, "L'image ne doit pas dépasser 2 Mo.");
+            valide = false;
+        }
+    }
+    return valide;
+}
+titre.addEventListener("input", () => {
+    supprimerErreur(titre, erreur_titre);
+});
+
+genre_serie.addEventListener("input", () => {
+    supprimerErreur(genre_serie, erreur_genre);
+});
+
+image_serie.addEventListener("change", () => {
+    supprimerErreur(image_serie, erreur_image);
+});
+form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (!validation()) {
+        return;
+    }
+});
 
