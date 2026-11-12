@@ -1,0 +1,119 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SérieScope — Catalogue des séries</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/js/all.min.js" defer></script>
+    <script src="js/script.js" defer></script>
+</head>
+
+<body class="bg-[#111111] text-white">
+    <header class="border-b border-[#303030]">
+        <div class="max-w-[1440px] mx-auto px-4 md:px-8 lg:px-12 h-16 flex items-center">
+            <a href="index.html" class="flex items-center gap-3 font-bold text-lg">
+                <div class="bg-white text-black w-8 h-8 rounded-md flex items-center justify-center">
+                    <i class="fa-solid fa-clapperboard"></i>
+                </div>
+                <span>Sériescope</span>
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-[1440px] mx-auto px-4 md:px-8 lg:px-12 py-8">
+        <section class="mb-6">
+            <h1 class="text-2xl md:text-3xl font-bold mb-2"> Explore les séries TV</h1>
+            <p class="text-[#999999] text-sm"> Retrouve tes séries préférées et enrichis le catalogue.</p>
+        </section>
+        <section class="bg-[#1B1B1B] border border-[#333333] rounded-xl p-5 mb-8">
+            <div class="mb-5">
+                <h2 class="text-lg font-semibold">Ajouter une série</h2>
+                <p class="text-[#999999] text-xs mt-1"> Les champs marqués d'un * sont obligatoires.</p>
+            </div>
+            <form id="formulaire-serie">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label for="titre" class="block text-sm font-medium mb-2"> Nom de la série *</label>
+                        <input type="text" id="titre" name="titre" placeholder="Ex. The Bear" class="w-full bg-[#151515] border border-[#383838] rounded-md px-3 py-3 text-sm">
+                        <p id="erreur-titre" class="text-red-400 text-xs mt-1"></p>
+                    </div>     
+                    <div>
+                        <label for="genre-serie" class="block text-sm font-medium mb-2"> Genre(s) * <span class="text-[#AAAAAA] text-xs font-normal">séparés par des virgules</span></label>
+                        <input type="text" id="genre-serie" name="genre" placeholder="Ex. Drama, Comédie" class="w-full bg-[#151515] border border-[#383838] rounded-md px-3 py-3 text-sm outline-none">
+                        <p id="erreur-genre" class="text-red-400 text-xs mt-1"></p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="image-serie" class="block text-sm font-medium mb-2">Affiche de la série</label>
+                        <input type="file" id="image-serie" name="image" accept="image/*" class="w-full bg-[#151515] border border-[#383838] rounded-md px-3 py-3 text-sm file:mr-4 file:rounded-md file:border-0 file:bg-[#333333] file:px-3 file:py-2 file:text-white">
+                        <p class="text-[#999999] text-xs mt-2">Formats acceptés : JPG, PNG, WEBP.</p>
+                        <p id="erreur-image" class="text-red-400 text-xs mt-1"></p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="description" class="block text-sm font-medium mb-2"> Description <span class="text-[#999999] font-normal">(facultative)</span></label>
+                        <textarea id="description" name="description" rows="4" placeholder="Résume la série en quelques mots..." class="w-full bg-[#151515] border border-[#383838] rounded-md px-3 py-3 text-sm"></textarea>
+                    </div>
+                </div>
+                <button id="btn-ajouter" type="submit" class="w-full md:w-auto bg-[#F4F4F4] text-black rounded-md px-5 py-3 text-sm font-semibold">
+                    <i class="fa-solid fa-plus mr-2"></i>
+                    Ajouter la série
+                </button>
+
+            </form>
+        </section>
+
+        <section id="catalogue">
+            <div class="mb-5">
+                <h2 class="text-xl font-bold mb-1">Catalogue des séries</h2>
+                <p class="text-[#999999] text-sm">Recherche par nom ou explore un genre.</p>
+            </div>
+            <div class="bg-[#1B1B1B] border border-[#333333] rounded-xl p-4 mb-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="recherche" class="block text-sm font-medium mb-2">Recherche</label>
+                        <input type="search" id="recherche" placeholder="Ex. Breaking Bad" class="w-full bg-[#151515] border border-[#383838] rounded-md px-3 py-3 text-sm">
+                    </div>
+                    <div>
+                        <label for="filtre-genre" class="block text-sm font-medium mb-2">Genre</label>
+
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <select id="filtre-genre" class="flex-1 min-w-0 bg-[#151515] border border-[#383838] rounded-md px-3 py-3 text-sm">
+                                <option value="">Tous les genres</option>
+                            </select>
+                            <button id="btn-reinitialiser" type="button" class="bg-[#242424] border border-[#383838] rounded-md px-4 py-3 text-sm font-medium">
+                                <i class="fa-solid fa-rotate-right mr-1"></i>
+                                Réinitialiser
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <p id="nombre-series" class="text-[#999999] text-sm mb-4"> 0 série affichée</p>
+            <p id="message-erreur-api" class="text-red-400 text-sm py-5" hidden></p>
+
+            <div id="etat-vide" class= "text-center py-16" hidden>
+                <i class="fa-solid fa-magnifying-glass text-3xl text-[#777777] mb-4"></i>
+                <h3 class="text-lg font-semibold">Aucune série trouvée</h3>
+                <p class="text-[#999999] text-sm mt-2"> Essaie un autre nom ou un autre genre.</p>
+            </div>
+
+            <div id="liste-series" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            </div> 
+            <div id="pagination" class="flex flex-wrap items-center justify-center gap-3 mt-8" hidden>
+                <button id="btn-precedent" type="button" class="bg-[#242424] border border-[#383838] rounded-md px-4 py-2 text-sm">
+                    Précédent
+                </button>
+
+                <p id="page-actuelle" class="text-[#AAAAAA] text-sm"></p>
+
+                <button id="btn-suivant" type="button" class="bg-[#242424] border border-[#383838] rounded-md px-4 py-2 text-sm">
+                    Suivant
+                </button>
+            </div>
+        </section>
+    </main>
+    <footer class="border-t border-[#303030] mt-10 py-5 text-center text-[#777777] text-xs">SérieScope — Catalogue de séries TV</footer>
+</body>
+</html>
