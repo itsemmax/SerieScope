@@ -74,7 +74,6 @@ function afficherGenres() {
 
 function afficherSeries(liste) {
     liste_series.innerHTML = "";
-    filtre_genre.innerHTML = '<option value="">Tous les genres</option>';
     nombre_series.textContent = liste.length + " séries affichées";
 
     if (liste.length === 0) {
@@ -140,7 +139,6 @@ function afficherSeries(liste) {
     btn_precedent.classList.toggle("opacity-40", page === 1);
     btn_suivant.classList.toggle("opacity-40", page === total_pages);
 }
-
 btn_suivant.addEventListener("click", () => {
     page++;
     afficherSeries(rechercher_filtrer(series));
@@ -159,8 +157,27 @@ function rechercher(liste) {
     let resultat = liste.filter((serie) =>serie.name.toLowerCase().includes(text));
     return resultat;
 }
+filtre_genre.addEventListener("change",()=>{
+    page=1;
+    afficherSeries(rechercher_filtrer(series));
+})
+function filtrer(liste) {
+    let genre = filtre_genre.value;
+    let resultat = liste.filter((serie) => {
+        return genre === "" || serie.genres.includes(genre);
+    });
+    return resultat;
+}
 function rechercher_filtrer(series) {
     let arr = series;
     arr = rechercher(arr);
+    arr = filtrer(arr);
     return arr;
 }
+btn_reinitialiser.addEventListener("click",()=>{
+    recherche.value = "";
+    filtre_genre.value = "";
+    afficherSeries(series);
+})
+
+
