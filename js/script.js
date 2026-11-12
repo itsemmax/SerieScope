@@ -22,6 +22,7 @@ const image_serie = document.querySelector("#image-serie");
 
 let series = [];
 let page = 1;
+let id_serie = 250;
 
 async function recupererSeries() {
     try {
@@ -239,5 +240,19 @@ form.addEventListener("submit", (event) => {
     if (!validation()) {
         return;
     }
+    let fichier = image_serie.files[0];
+    let nouvelleSerie = {
+        id: id_serie++,
+        name: titre.value.trim(),
+        genres: genre_serie.value.split(",").map((genre) => genre.trim()),
+        summary: description.value.trim(),
+        image:{
+            original: URL.createObjectURL(fichier)
+        }
+    };
+    series.unshift(nouvelleSerie);
+    localStorage.setItem("series", JSON.stringify(series));
+    page = 1;
+    afficher(rechercher_filtrer(series));
+    form.reset();
 });
-
