@@ -82,7 +82,14 @@ function afficherSeries(liste) {
         pagination.hidden = true;
         return;
     }
-    series.forEach((serie) => {
+    etat_vide.hidden = true;
+
+    let total_pages = Math.ceil(liste.length / 15);
+    let debut = (page - 1) * 15;
+    let fin = debut + 15;
+    let series_page = liste.slice(debut, fin);
+
+    series_page.forEach((serie) => {
         let description = serie.summary || "Aucune description disponible";
 
         let carte = document.createElement("article");
@@ -123,7 +130,22 @@ function afficherSeries(liste) {
 
         liste_series.appendChild(carte);
     });
+    pagination.hidden = total_pages <= 1;
+
+    page_actuelle.textContent = `Page ${page} sur ${total_pages}`;
+
+    btn_precedent.disabled = page === 1;
+    btn_suivant.disabled = page === total_pages;
+
+    btn_precedent.classList.toggle("opacity-40", page === 1);
+    btn_suivant.classList.toggle("opacity-40", page === total_pages);
 }
+btn_suivant.addEventListener("click", () => {
+    page++;
+    afficherSeries(series);
+});
 
-
-
+btn_precedent.addEventListener("click", () => {
+    page--;
+    afficherSeries(series);
+});
