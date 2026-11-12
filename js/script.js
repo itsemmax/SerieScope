@@ -45,7 +45,7 @@ async function recupererSeries() {
 }
 series = JSON.parse(localStorage.getItem("series"));
 if (series) {
-    afficherSeries(series);
+    afficherSeries(rechercher_filtrer(series));
     afficherGenres();
 } else {
     recupererSeries();
@@ -140,12 +140,27 @@ function afficherSeries(liste) {
     btn_precedent.classList.toggle("opacity-40", page === 1);
     btn_suivant.classList.toggle("opacity-40", page === total_pages);
 }
+
 btn_suivant.addEventListener("click", () => {
     page++;
-    afficherSeries(series);
+    afficherSeries(rechercher_filtrer(series));
 });
 
 btn_precedent.addEventListener("click", () => {
     page--;
-    afficherSeries(series);
+    afficherSeries(rechercher_filtrer(series));
 });
+recherche.addEventListener("input", () => {
+    page = 1;
+    afficherSeries(rechercher_filtrer(series));
+});
+function rechercher(liste) {
+    let text = recherche.value.trim().toLowerCase();
+    let resultat = liste.filter((serie) =>serie.name.toLowerCase().includes(text));
+    return resultat;
+}
+function rechercher_filtrer(series) {
+    let arr = series;
+    arr = rechercher(arr);
+    return arr;
+}
