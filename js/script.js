@@ -27,6 +27,7 @@ const detail_chaine = document.querySelector("#detail-chaine");
 const detail_pays = document.querySelector("#detail-pays");
 const detail_image = document.querySelector("#detail-image");
 const bouton_fermer_details = document.querySelector("#bouton-fermer-details");
+const detail_description = document.querySelector("#detail-description");
 
 
 let series = [];
@@ -308,6 +309,11 @@ function afficherDetails(serie) {
     }else {
         detail_image.removeAttribute("src");
         detail_image.hidden = true;
+    }
+    if (serie.summary && serie.summary.trim() !== "") {
+        detail_description.textContent = serie.summary.replace(/<[^>]*>/g, "");
+    } else {
+        detail_description.textContent = "Non renseigné";
     }
     modal_details.showModal();
 }
