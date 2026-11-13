@@ -19,6 +19,15 @@ const btn_precedent = document.querySelector("#btn-precedent");
 const btn_suivant = document.querySelector("#btn-suivant");
 const page_actuelle = document.querySelector("#page-actuelle");
 const image_serie = document.querySelector("#image-serie");
+const detail_titre = document.querySelector("#detail-titre");
+const detail_note = document.querySelector("#detail-note");
+const detail_jours = document.querySelector("#detail-jours");
+const detail_heure = document.querySelector("#detail-heure");
+const detail_chaine = document.querySelector("#detail-chaine");
+const detail_pays = document.querySelector("#detail-pays");
+const detail_image = document.querySelector("#detail-image");
+const bouton_fermer_details = document.querySelector("#bouton-fermer-details");
+
 
 let series = [];
 let page = 1;
@@ -116,20 +125,19 @@ function afficher(liste) {
         let desc = document.createElement("p");
         desc.className = "text-[#AAAAAA] text-sm truncate mb-1";
         desc.textContent = description.replace(/<[^>]*>/g, "");
-
-        contenu.appendChild(titre);
-        contenu.appendChild(badges);
-        contenu.appendChild(desc);
-
-        carte.appendChild(affiche);
-        carte.appendChild(contenu);
-
-        liste_series.appendChild(carte);
+        let btn_details = document.createElement("button");
+        btn_details.textContent = "Voir les détails";
+        btn_details.type = "button";
+        btn_details.className = "mt-4 bg-[#333333] hover:bg-[#444444] text-white px-4 py-2 rounded-md text-sm";
+        btn_details.addEventListener("click", () => {
+            afficherDetails(serie);
+        });
+        contenu.append(titre,badges,desc,btn_details);
+        carte.append(affiche,contenu);
+        liste_series.append(carte);
     });
     pagination.hidden = total_pages <= 1;
-
     page_actuelle.textContent = `Page ${page} sur ${total_pages}`;
-
     btn_precedent.disabled = page === 1;
     btn_suivant.disabled = page === total_pages;
 
@@ -256,3 +264,59 @@ form.addEventListener("submit", (event) => {
     afficher(rechercher_filtrer(series));
     form.reset();
 });
+
+function afficherDetails(serie) {
+
+    if(serie.name) {
+        detail_titre.textContent = serie.name;
+    }else {
+        detail_titre.textContent = "Non renseigné";
+    }
+
+    if(serie.rating && serie.rating.average != null) {
+        detail_note.textContent = serie.rating.average;
+    }else {
+        detail_note.textContent = "Non renseigné";
+    }
+
+    if(serie.schedule && serie.schedule.days && serie.schedule.days.length > 0) {
+        detail_jours.textContent = serie.schedule.days.join(", ");
+    }else{
+        detail_jours.textContent = "Non renseigné";
+    }
+
+    if(serie.schedule && serie.schedule.time) {
+        detail_heure.textContent = serie.schedule.time;
+    }else{
+        detail_heure.textContent = "Non renseigné";
+    }
+
+    if(serie.network && serie.network.name) {
+        detail_chaine.textContent = serie.network.name;
+    }else {
+        detail_chaine.textContent = "Non renseigné";
+    }
+
+    if(serie.network && serie.network.country && serie.network.country.name) {
+        detail_pays.textContent = serie.network.country.name;
+    }else{
+        detail_pays.textContent = "Non renseigné";
+    }
+    if (serie.image && serie.image.original) {
+        detail_image.src = serie.image.original;
+        detail_image.hidden = false;
+    }else {
+        detail_image.removeAttribute("src");
+        detail_image.hidden = true;
+    }
+    modal_details.showModal();
+}
+
+fermer_details.addEventListener("click", () => {
+    modal_details.close();
+});
+
+bouton_fermer_details.addEventListener("click", () => {
+    modal_details.close();
+});
+
