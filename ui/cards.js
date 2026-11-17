@@ -22,7 +22,7 @@ function afficherGenres(liste) {
     });
 }
 
-export function afficher(liste) {
+export function afficher(liste){
     liste_series.innerHTML = "";
 
     nombre_series.textContent = liste.length + " séries affichées";
