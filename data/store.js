@@ -1,4 +1,4 @@
 export const state = {
     series: [],
-    criteria: { name: "", genre: "", language: "" }
+    filters: { name: "", genre: "", language: "" }
 };
