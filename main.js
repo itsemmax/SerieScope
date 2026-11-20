@@ -96,6 +96,20 @@ btn_annuler.addEventListener("click", () => {
 });
 
 export async function supprimerSerie(serie) {
+    if (!confirm(`Voulez-vous supprimer "${serie.name}" ?`)) {
+        return;
+    }
+    try{
+        await remove(serie.id);
+        if (serieEnModification?.id === serie.id) {
+            serieEnModification = null;
+            reinitialiser_form();
+        }
+        await chargerSeries();
+    }catch(error) {
+        console.error(error);
+        alert("Erreur lors de la suppression");
+    }
 }
 export function modifierSerie(serie){
     serieEnModification = serie;
