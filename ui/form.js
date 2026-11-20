@@ -9,6 +9,9 @@ const erreur_titre = document.querySelector("#erreur-titre");
 const erreur_langue = document.querySelector("#erreur-langue");
 const erreur_image = document.querySelector("#erreur-image");
 const erreur_genre = document.querySelector("#erreur-genre");
+const btn_ajouter = document.querySelector("#btn-ajouter");
+const btn_annuler = document.querySelector("#btn-annuler");
+const titre_formulaire = document.querySelector("#titre-formulaire");
 
 export function validation() {
     let valide = true;
@@ -37,18 +40,6 @@ export function validation() {
         afficherErreur(genre_serie, erreur_genre, "Chaque genre doit contenir au moins 2 caractères et Séparez les genres par des virgules");
         valide = false;
     }
-    let fichiers = image_serie.files;
-    if (fichiers.length === 0) {
-        afficherErreur(image_serie, erreur_image, "Veuillez sélectionner une image.");
-        valide = false;
-    } else {
-        let fichier = fichiers[0];
-        let taille_max = 2 * 1024 * 1024;
-        if (fichier.size > taille_max) {
-            afficherErreur(image_serie, erreur_image, "L'image ne doit pas dépasser 2 Mo.");
-            valide = false;
-        }
-    }
     return valide;
 }
 export function recupererValeurs() {
@@ -57,10 +48,32 @@ export function recupererValeurs() {
         name: titre.value.trim(),
         genres: genre_serie.value.split(",").map((genre) => genre.trim()),
         language: langue_serie.value,
-        summary: description.value.trim(),
-        image:{
-            original: URL.createObjectURL(fichier)
-        }
+        summary: description.value.trim()
     };
+    if (fichier) {
+        nouvelleSerie.image = { original: URL.createObjectURL(fichier) };
+    }
     return nouvelleSerie;
+}
+export function remplir_form(serie){
+    reinitialiser_form();
+    titre.value = serie.name || "";
+    langue_serie.value = serie.language || "";
+    genre_serie.value = (serie.genres || []).join(", ");
+    description.value = serie.summary || "";
+    titre_formulaire.textContent = "Modifier une série";
+    btn_ajouter.textContent = "Enregistrer les modifications";
+    btn_annuler.hidden = false;
+    window.scrollTo(0, 0);
+}
+
+export function reinitialiser_form(){
+    form.reset();
+    supprimerErreur(titre, erreur_titre);
+    supprimerErreur(genre_serie, erreur_genre);
+    supprimerErreur(langue_serie, erreur_langue);
+    supprimerErreur(image_serie, erreur_image);
+    titre_formulaire.textContent = "Ajouter une série";
+    btn_ajouter.textContent = "Ajouter la série";
+    btn_annuler.hidden = true;
 }

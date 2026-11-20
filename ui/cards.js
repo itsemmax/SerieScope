@@ -1,3 +1,4 @@
+import {supprimerSerie,modifierSerie} from "../main.js";
 const liste_series = document.querySelector("#liste-series");
 const etat_vide = document.querySelector("#etat-vide");
 const nombre_series = document.querySelector("#nombre-series");
@@ -35,7 +36,7 @@ function afficherGenres_languages(liste) {
     filtre_langue.value = languages.includes(langue_selectionnee) ? langue_selectionnee : "";
 }
 
-export function afficher(liste, modifierSerie, supprimerSerie, enCours = false){
+export function afficher(liste){
     liste_series.innerHTML = "";
 
     nombre_series.textContent = liste.length + " séries affichées";
@@ -53,7 +54,7 @@ export function afficher(liste, modifierSerie, supprimerSerie, enCours = false){
         carte.className = "bg-[#1B1B1B] border border-[#333333] rounded-xl overflow-hidden";
 
         let affiche = document.createElement("img");
-        affiche.src = serie.image?.original || "assets/images/placeholder.png";
+        affiche.src = serie.image?.original || "assets/images/image.png";
         affiche.alt = "Affiche de " + serie.name;
         affiche.className = "w-full h-110";
 
@@ -81,29 +82,28 @@ export function afficher(liste, modifierSerie, supprimerSerie, enCours = false){
         let btn_details = document.createElement("button");
         btn_details.textContent = "Voir les détails";
         btn_details.type = "button";
-        btn_details.className = "mt-4 bg-[#333333] hover:bg-[#444444] text-white px-4 py-2 rounded-md text-sm";
+        btn_details.className = "w-full mt-4 bg-[#333333] hover:bg-[#444444] text-white px-4 py-2 rounded-md text-sm";
 
         btn_details.addEventListener("click", () => {
             window.location.href = `details.html?id=${serie.id}`;
         });
 
         let actions = document.createElement("div");
-        actions.className = "flex flex-wrap gap-2 mt-2";
+        actions.className = "grid grid-cols-1 md:grid-cols-2 gap-2 mt-2";
 
         let btn_modifier = document.createElement("button");
         btn_modifier.textContent = "Modifier";
         btn_modifier.type = "button";
         btn_modifier.dataset.action = "modifier";
-        btn_modifier.disabled = enCours;
-        btn_modifier.className = "bg-[#333333] hover:bg-[#444444] text-white px-4 py-2 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed";
-        btn_modifier.addEventListener("click", () => modifierSerie(serie));
+        btn_modifier.className = "bg-blue-950 bg-[#333333] text-white px-4 py-2 rounded-md text-sm";
+        btn_modifier.addEventListener("click", () =>{
+             modifierSerie(serie)});
 
         let btn_supprimer = document.createElement("button");
         btn_supprimer.textContent = "Supprimer";
         btn_supprimer.type = "button";
         btn_supprimer.dataset.action = "supprimer";
-        btn_supprimer.disabled = enCours;
-        btn_supprimer.className = "bg-red-950 hover:bg-red-900 text-red-300 px-4 py-2 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed";
+        btn_supprimer.className = "bg-red-950 text-red-300 px-4 py-2 rounded-md text-sm";
         btn_supprimer.addEventListener("click", () => supprimerSerie(serie));
 
         actions.append(btn_modifier, btn_supprimer);
