@@ -1,8 +1,8 @@
 
-import {getAll,create} from "./src/serieService.js";
+import {getAll,create,remove,update} from "./src/serieService.js";
 import {afficher} from "./ui/cards.js";
 import {state} from "./data/store.js";
-import {validation,recupererValeurs} from "./ui/form.js"
+import {validation,recupererValeurs,remplir_form,reinitialiser_form} from "./ui/form.js"
 import { supprimerErreur } from "./ui/notify.js";
 
 const message_erreur_api = document.querySelector("#message-erreur-api");
@@ -15,12 +15,15 @@ const erreur_titre = document.querySelector("#erreur-titre");
 const erreur_langue = document.querySelector("#erreur-langue");
 const erreur_image = document.querySelector("#erreur-image");
 const erreur_genre = document.querySelector("#erreur-genre");
+const btn_ajouter = document.querySelector("#btn-ajouter");
+const btn_annuler = document.querySelector("#btn-annuler");
+
+let serieEnModification = null;
 
 async function chargerSeries() {
     try{
         state.series = await getAll();
         message_erreur_api.hidden = true;
-        console.log(state.series);
         afficher(state.series);
     }catch (error){
         if (error.code === "ECONNABORTED") {
@@ -52,13 +55,50 @@ form.addEventListener("submit",async (e)=>{
     if(!validation()){
         return;
     }
-    let serie = recupererValeurs();
-    let image = serie.image;
-    delete serie.image;
-    let test = await create(serie);
-    test.image = image;
-    state.series.push(test);
-    afficher(state.series);
-    form.reset();
-})
+    btn_ajouter.disabled = true;
+    btn_annuler.disabled = true;
+    try{
+        let serie = recupererValeurs();
+        let image = serie.image || serieEnModification?.image;
+        delete serie.image;
+
+        if(serieEnModification) {
+            let resultat = await update(serieEnModification.id, serie);
+            let serieModifiee = { ...serieEnModification, ...serie, ...resultat };
+            if (image) {
+                serieModifiee.image = image;
+            }
+            state.series = state.series.map((item) =>
+                item.id === serieEnModification.id ? serieModifiee : item
+            );
+        }else {
+            let serieCreee = await create(serie);
+            if (image){
+                serieCreee.image = image;
+            }
+            state.series.push(serieCreee);
+        }
+        afficher(state.series);
+        serieEnModification = null;
+        reinitialiser_form();
+    }catch(error){
+        console.error(error);
+        alert("Erreur lors de l'enregistrement de la série.");
+    }finally{
+        btn_ajouter.disabled = false;
+        btn_annuler.disabled = false;
+    }
+});
+
+btn_annuler.addEventListener("click", () => {
+    serieEnModification = null;
+    reinitialiser_form();
+});
+
+export async function supprimerSerie(serie) {
+}
+export function modifierSerie(serie){
+    serieEnModification = serie;
+    remplir_form(serie);
+}
 chargerSeries();
