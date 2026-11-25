@@ -1,618 +1,287 @@
+﻿# 🎬 SérieScope — Catalogue de séries TV (2/2)
 
-# 🎬 SérieScope — Catalogue de séries TV
+SérieScope est une application web réalisée par **Imane Chaoub**, dans le cadre de la formation **Développeur Web et Web Mobile — Simplon / YouCode**.
 
-SérieScope est une application web développée dans le cadre d'un projet individuel à **Simplon / YouCode**.
+Cette deuxième partie du projet permet à une médiathèque de consulter, rechercher, ajouter, modifier et supprimer des séries. Les données sont enregistrées sur le serveur grâce à l’**API SérieScope** fournie dans le brief.
 
-Ce projet répond au besoin d'une médiathèque souhaitant mettre à disposition de ses visiteurs un catalogue en ligne de séries et de documentaires.
+Le frontend utilise **JavaScript Vanilla**, **Axios** et **Tailwind CSS**. Les critères de recherche sont conservés dans le navigateur avec `localStorage`.
 
-L'application permet de consulter les séries, rechercher un titre, filtrer par genre, ajouter de nouvelles séries et afficher leurs informations détaillées.
+## Liens du projet
 
-Le catalogue initial est alimenté par l'API **TVmaze**.
+- [Dépôt GitHub](https://github.com/itsemmax/SerieScope)
+- [Adresse du site](https://seriescope.vercel.app/)
+- [Documentation Swagger de l’API SérieScope](https://seriescope-api.vercel.app/)
 
-L'application fonctionne entièrement côté **frontend**, sans backend ni base de données.
+## Aperçu
 
----
+![Capture du catalogue SérieScope](./assets/images/catalogue2.png)
 
-## 📸 Aperçu du projet
+Cette capture est conservée depuis la première version du projet.
 
-### Catalogue des séries
+## Fonctionnalités de cette version
 
-![Catalogue SérieScope](./assets/images/catalogue.png)
+### Catalogue et chargement
 
-L'application présente les séries sous forme de cartes contenant une affiche, un titre, des genres et une description.
+Les séries sont récupérées avec `GET /series` et affichées sous forme de cartes :
 
-L'utilisateur peut rechercher une série, filtrer le catalogue, naviguer entre les pages, ajouter une nouvelle série et consulter sa fiche détaillée.
+- affiche, titre, genres et résumé ;
+- bouton **Voir les détails** ;
+- bouton **Modifier** ;
+- bouton **Supprimer**.
 
----
+Le message **« Chargement des séries… »** apparaît pendant la récupération du catalogue. Si le serveur renvoie un tableau vide, l’application affiche **« Aucune série trouvée »**. Un message d’erreur apparaît si le chargement échoue, avec un message spécifique en cas de timeout.
 
-## 🎯 Objectif du projet
+La grille s’adapte à la largeur de l’écran : une colonne sur mobile, deux sur tablette et trois sur les grands écrans.
 
-L'objectif principal est de développer un catalogue de séries dynamique avec **JavaScript Vanilla ES6+**, en exploitant une API REST.
+### Recherche et filtres côté serveur
 
-Ce projet permet notamment de pratiquer :
+Trois critères peuvent être combinés :
 
-- la manipulation du DOM ;
-- la gestion des événements JavaScript ;
-- la récupération des données avec `fetch()` ;
-- l'utilisation de `async/await` ;
-- la manipulation des tableaux et des objets imbriqués ;
-- l'exploitation des données JSON ;
-- la recherche et le filtrage ;
-- la pagination ;
-- la validation des formulaires ;
-- l'ajout dynamique de données ;
-- l'utilisation de `localStorage` ;
-- le responsive design avec Tailwind CSS ;
-- la gestion de projet avec GitFlow et Jira.
+- `name` : recherche par nom ;
+- `genre` : filtre par genre ;
+- `language` : filtre par langue.
 
----
+À chaque saisie ou sélection, les valeurs sont placées dans `state.filters`, puis transmises à Axios avec `params` :
 
-## ✨ Fonctionnalités
+```javascript
+const response = await myax.get("/series", {
+    params: filters
+});
+```
 
-### 📺 Affichage du catalogue
+L’API effectue la recherche et le filtrage. Le tableau reçu sert à afficher les résultats.
 
-Au chargement de l'application, les séries sont récupérées depuis l'API TVmaze ou depuis les données déjà enregistrées dans `localStorage`.
+Les choix de genres et de langues sont construits à partir du catalogue complet, sans doublons. Ils sont actualisés après un ajout, une modification ou une suppression et restent disponibles lorsqu’une recherche ne renvoie aucun résultat.
 
-Chaque carte affiche :
+Le bouton **Réinitialiser** vide les trois critères, supprime leur sauvegarde locale et recharge le catalogue.
 
-- l'affiche de la série ;
-- le titre ;
-- les genres sous forme de badges ;
-- une courte description ;
-- un bouton **Voir les détails**.
+### Ajout et modification
 
-Les cartes sont générées dynamiquement avec JavaScript grâce à la manipulation du DOM.
+Le même formulaire sert à ajouter une série et à modifier une série existante.
 
-### 🔗 Récupération des données depuis l'API
+| Champ | Validation actuelle |
+| --- | --- |
+| Nom | Obligatoire, entre 2 et 60 caractères après suppression des espaces au début et à la fin. |
+| Langue | Une langue doit être sélectionnée. |
+| Genres | Au moins un genre ; valeurs séparées par des virgules, avec au moins 2 caractères par genre. Lettres, espaces, apostrophes et tirets acceptés. |
+| Résumé | Facultatif. |
+| Affiche | Facultative ; affichage local du fichier sélectionné. |
 
-L'application utilise l'API publique TVmaze :
+Les erreurs de validation côté navigateur sont affichées sous les champs concernés.
 
-`https://api.tvmaze.com/shows?page=0`
+- **Ajouter** envoie une requête `POST /series`.
+- **Modifier** préremplit le formulaire avec les données de la carte et affiche le mode édition.
+- **Enregistrer les modifications** envoie une requête `PATCH /series/:id`.
+- **Annuler** vide le formulaire et revient au mode ajout.
 
-Les données sont récupérées avec `fetch()` et `async/await`.
+Exemple de données envoyées :
 
-La fonction vérifie la réponse HTTP grâce à `response.ok`.
+```json
+{
+    "name": "Ma série",
+    "language": "French",
+    "genres": ["Drama", "Comedy"],
+    "summary": "Le résumé de la série."
+}
+```
 
-Les erreurs sont gérées avec `try...catch` et un message est affiché en cas d'échec de récupération.
+`PATCH` permet de mettre à jour les champs du formulaire sans remplacer les autres informations de la fiche, comme les dates ou la note.
 
-Les données récupérées sont conservées dans un tableau JavaScript et enregistrées dans `localStorage`.
+Après un enregistrement réussi, le formulaire est vidé. Sans filtre actif, le catalogue affiché est mis à jour à partir de la réponse de l’API. Avec des filtres actifs, une nouvelle requête récupère les résultats correspondants.
 
-### 🔎 Recherche par titre
+### Suppression
 
-L'utilisateur peut rechercher une série en saisissant une partie de son nom.
-
-La recherche :
-
-- fonctionne en temps réel ;
-- ignore les majuscules et les minuscules ;
-- accepte les noms partiels ;
-- se combine avec le filtre par genre ;
-- actualise automatiquement les cartes affichées.
-
-La recherche utilise notamment les méthodes :
-
-- `filter()`
-- `includes()`
-- `toLowerCase()`
-
-### 🏷️ Filtrage par genre
-
-Les genres sont récupérés dynamiquement à partir des séries du catalogue.
-
-L'utilisateur peut :
-
-- sélectionner un genre ;
-- afficher les séries correspondant au genre sélectionné ;
-- combiner le filtre avec la recherche ;
-- sélectionner **Tous les genres** pour afficher toutes les séries.
-
-Une série possédant plusieurs genres peut apparaître dans plusieurs catégories.
-
-### 🔄 Réinitialisation des filtres
-
-Un bouton **Réinitialiser** permet de :
-
-- vider le champ de recherche ;
-- supprimer le filtre par genre ;
-- réafficher le catalogue complet.
-
-Si aucune série ne correspond aux critères sélectionnés, le message suivant apparaît :
-
-**Aucune série trouvée**
-
-### 📄 Pagination
-
-Le catalogue utilise une pagination pour faciliter la navigation.
-
-Chaque page affiche au maximum **15 séries**.
-
-L'utilisateur peut :
-
-- passer à la page suivante ;
-- revenir à la page précédente ;
-- consulter le numéro de la page actuelle ;
-- connaître le nombre total de pages.
-
-Les boutons sont désactivés lorsqu'il n'est plus possible d'avancer ou de reculer.
-
-La pagination utilise notamment :
-
-- `slice()` pour sélectionner les séries de la page ;
-- `Math.ceil()` pour calculer le nombre total de pages.
-
-### ➕ Ajout d'une série
-
-Un formulaire permet d'ajouter une nouvelle série au catalogue.
-
-Les champs proposés sont :
-
-- nom de la série ;
-- genre(s) séparés par des virgules ;
-- affiche de la série ;
-- description facultative.
-
-Lorsqu'un ajout est valide :
-
-1. Un nouvel objet JavaScript est créé.
-2. La série est ajoutée au début du tableau.
-3. Les données sont enregistrées dans `localStorage`.
-4. Le catalogue est actualisé sans rechargement.
-5. Le formulaire est réinitialisé.
-
-Le filtre et la recherche actifs sont réappliqués après l'ajout.
-
-### 📝 Validation du formulaire
-
-Les informations sont vérifiées avant l'ajout d'une série.
-
-**Nom de la série :**
-
-- champ obligatoire ;
-- entre 2 et 60 caractères ;
-- les espaces seuls sont refusés.
-
-**Genres :**
-
-- au moins un genre obligatoire ;
-- plusieurs genres peuvent être séparés par des virgules ;
-- chaque genre doit contenir au moins 2 caractères ;
-- les genres doivent respecter le format autorisé.
-
-**Image :**
-
-- une image est obligatoire ;
-- taille maximale de 2 Mo ;
-- le champ de sélection accepte les formats JPG, JPEG, PNG et WEBP.
-
-Des messages d'erreur sont affichés sous les champs concernés.
-
-Les bordures deviennent rouges lorsqu'une erreur est détectée.
-
-### 🖼️ Gestion des images
-
-Les affiches des séries récupérées depuis TVmaze proviennent des URLs fournies par l'API.
-
-Pour les séries ajoutées depuis le formulaire, l'application utilise :
-
-`URL.createObjectURL(fichier)`
-
-Cette méthode permet d'afficher immédiatement l'image sélectionnée dans le navigateur.
-
-**Limitation :** les URLs temporaires créées avec `URL.createObjectURL()` ne restent pas valides après un rechargement de la page. Les images ajoutées ne sont donc pas sauvegardées durablement avec le système actuel.
-
-### 📋 Fiche détaillée
-
-Chaque carte possède un bouton **Voir les détails** permettant d'afficher les informations complémentaires d'une série dans une fenêtre modale.
-
-La fiche détaillée contient :
-
-- le titre de la série ;
-- son affiche ;
-- sa note moyenne ;
-- ses jours de diffusion ;
-- son heure de diffusion ;
-- sa chaîne de diffusion ;
-- le pays de la chaîne ;
-- sa description complète.
-
-Les informations sont récupérées depuis les propriétés imbriquées des objets fournis par l'API TVmaze :
-
-- `serie.rating.average`
-- `serie.schedule.days`
-- `serie.schedule.time`
-- `serie.network.name`
-- `serie.network.country.name`
-- `serie.summary`
-
-Lorsqu'une information est absente, le message **Non renseigné** est affiché.
-
-La description est nettoyée des balises HTML grâce à la méthode `replace()` afin d'afficher uniquement le texte.
-
-La fenêtre modale est responsive et permet de faire défiler son contenu lorsque celui-ci dépasse la hauteur de l'écran, tout en masquant la barre de défilement.
-
-L'utilisateur peut fermer la fiche avec les boutons de fermeture ou la touche `Échap`.
-
-### 💾 Sauvegarde locale
-
-Les données des séries sont enregistrées dans `localStorage` sous la clé :
-
-`"series"`
-
-Les données sont sauvegardées et récupérées avec :
-
-- `JSON.stringify()`
-- `JSON.parse()`
-
-Cela permet de conserver les informations des séries après un rafraîchissement de la page.
-
-La persistance des affiches ajoutées reste limitée par l'utilisation des URLs temporaires.
-
----
-
-## 🛠️ Technologies utilisées
-
-- **HTML5** — structure sémantique de l'application
-- **Tailwind CSS v4** — design et responsive
-- **JavaScript Vanilla ES6+** — logique de l'application
-- **DOM** — manipulation dynamique des éléments
-- **Fetch API** — récupération des séries
-- **TVmaze API** — source des données
-- **JSON** — format des données
-- **localStorage** — sauvegarde locale
-- **Font Awesome** — icônes
-- **Git** — gestion des versions
-- **GitHub** — hébergement du code source
-- **GitFlow** — organisation des branches
-- **Jira** — gestion des tâches
-- **Figma** — conception des maquettes
-
----
-
-## 📁 Structure du projet
+Le bouton **Supprimer** ouvre une confirmation avec le titre de la série :
 
 ```text
-SerieScope/
-│
-├── index.html
-│
-├── js/
-│   └── script.js
-│
-├── assets/
-│   └── images/
-│       ├── catalogue.png
-│       └── jira.png
-│
-└── README.md
+Voulez-vous supprimer "Nom de la série" ?
 ```
 
-Les fichiers d'images présentés dans cette structure correspondent aux captures d'écran à ajouter pour la documentation.
+Après confirmation, l’application envoie `DELETE /series/:id`, puis recharge les choix des filtres et le catalogue. Si la suppression échoue, un message d’erreur apparaît et la carte n’est pas retirée par cette opération.
 
-### Rôle des fichiers
+### Fiche détaillée
 
-**`index.html`**
+Le bouton **Voir les détails** ouvre une page dédiée :
 
-Contient la structure HTML de l'application :
-
-- header ;
-- formulaire d'ajout ;
-- recherche et filtre ;
-- catalogue des séries ;
-- pagination ;
-- fiche détaillée ;
-- footer.
-
-**`js/script.js`**
-
-Contient la logique JavaScript :
-
-- récupération des séries depuis l'API ;
-- génération dynamique des cartes ;
-- affichage des genres ;
-- recherche et filtrage ;
-- pagination ;
-- validation du formulaire ;
-- ajout d'une série ;
-- gestion des images ;
-- affichage de la fiche détaillée ;
-- sauvegarde locale.
-
-**`README.md`**
-
-Présente le projet, ses fonctionnalités, les technologies utilisées et les instructions de lancement.
-
----
-
-## 🌐 API TVmaze
-
-SérieScope utilise l'API publique TVmaze pour récupérer les informations des séries.
-
-**Endpoint utilisé :**
-
-`GET https://api.tvmaze.com/shows?page=0`
-
-### Exemple de structure JSON
-
-```javascript
-{
-    id: 1,
-    name: "Example Series",
-    language: "English",
-    genres: ["Drama", "Comedy"],
-    status: "Running",
-    rating: {
-        average: 8.5
-    },
-    schedule: {
-        time: "20:00",
-        days: ["Monday"]
-    },
-    network: {
-        name: "Example Network",
-        country: {
-            name: "United States"
-        }
-    },
-    image: {
-        medium: "https://example.com/image.jpg",
-        original: "https://example.com/image-original.jpg"
-    },
-    summary: "Description de la série"
-}
+```text
+details.html?id=1
 ```
 
-Cet objet est un exemple illustratif de la structure des données.
+`ui/details.js` lit l’identifiant dans l’URL avec `URLSearchParams`, appelle `getById(id)`, puis remplit la page avec :
 
-### Récupération des données
+- le titre et l’affiche ;
+- la date de première diffusion et la date de fin ;
+- la note moyenne sur 10 ;
+- le lien du site officiel, lorsqu’une adresse HTTPS est disponible ;
+- le résumé.
+
+Les balises HTML du résumé sont retirées avant l’affichage du texte. Des valeurs de remplacement sont utilisées pour les informations manquantes. Un lien permet de revenir au catalogue.
+
+## API et service Axios
+
+L’application active utilise une seule instance Axios, définie dans [src/api.js](./src/api.js) :
 
 ```javascript
-async function recupererSeries() {
-    try {
-        const response = await fetch(
-            "https://api.tvmaze.com/shows?page=0"
-        );
-
-        if (!response.ok) {
-            throw new Error(
-                "Erreur lors de la récupération des séries"
-            );
-        }
-
-        const data = await response.json();
-
-        series = data;
-
-        localStorage.setItem(
-            "series",
-            JSON.stringify(series)
-        );
-
-        afficher(series);
-
-    } catch (error) {
-        message_erreur_api.textContent =
-            "Impossible de charger les séries.";
-
-        message_erreur_api.hidden = false;
-
-        console.error(error);
-    }
-}
+export const myax = axios.create({
+    baseURL: "https://seriescope-api.vercel.app/api",
+    timeout: 8000,
+    headers: { "X-Learner": "i.chaoub" }
+});
 ```
 
----
+Le délai maximal d’une requête est de **8 secondes**. L’en-tête `X-Learner` identifie l’espace de données de l’apprenant. Il faut conserver le même identifiant pour retrouver son catalogue, y compris depuis un autre navigateur.
 
-## 💾 Gestion des données
+Les appels sont regroupés dans [src/serieService.js](./src/serieService.js). Chaque fonction utilise `async/await` et `try/catch` ; les erreurs sont transmises au code qui appelle le service.
 
-Les séries sont représentées sous forme d'un tableau d'objets JavaScript.
+| Fonction | Méthode | Route | Utilisation |
+| --- | --- | --- | --- |
+| `getAll(filters)` | GET | `/series` | Lire le catalogue avec les critères envoyés dans `params`. |
+| `getById(id)` | GET | `/series/:id` | Lire une série pour la page de détails. |
+| `create(serie)` | POST | `/series` | Enregistrer une nouvelle série. |
+| `update(id, serie)` | PATCH | `/series/:id` | Modifier une série. |
+| `remove(id)` | DELETE | `/series/:id` | Supprimer une série. |
+
+## État et persistance
+
+[data/store.js](./data/store.js) contient l’état partagé :
 
 ```javascript
-let series = [];
-```
-
-Les données sont récupérées depuis l'API et enregistrées dans `localStorage`.
-
-Lorsqu'une série est ajoutée, un nouvel objet est créé :
-
-```javascript
-let nouvelleSerie = {
-    id: id_serie++,
-    name: titre.value.trim(),
-    genres: genre_serie.value
-        .split(",")
-        .map((genre) => genre.trim()),
-    summary: description.value.trim(),
-    image: {
-        original: URL.createObjectURL(fichier)
-    }
+export const state = {
+    series: [],
+    filters: { name: "", genre: "", language: "" }
 };
 ```
 
-La série est ensuite ajoutée au début du tableau :
+| Données | Emplacement | Après un rechargement |
+| --- | --- | --- |
+| Séries enregistrées | API SérieScope | Récupérées depuis le serveur. |
+| Résultats affichés dans `state.series` | Mémoire du navigateur | Rechargés depuis l’API. |
+| Critères de `state.filters` | `localStorage`, clé `filters` | Restaurés dans les champs et envoyés à l’API. |
+| Affiche choisie dans le formulaire | URL temporaire locale | Non sauvegardée sur le serveur. |
+
+Les critères sont enregistrés avec :
 
 ```javascript
-series.unshift(nouvelleSerie);
+localStorage.setItem("filters", JSON.stringify(state.filters));
 ```
 
-Le catalogue est actualisé dynamiquement.
+Ils sont relus avec `JSON.parse()` au chargement. **Réinitialiser** supprime la clé avec `localStorage.removeItem("filters")`.
 
----
+Cette sauvegarde des filtres appartient au navigateur et à l’adresse du site utilisés. Elle n’est pas synchronisée entre plusieurs navigateurs.
 
-## 🔀 Organisation avec GitFlow
+### Limite concernant les images
 
-Le développement du projet est organisé avec GitFlow.
+Le formulaire utilise `URL.createObjectURL()` pour afficher une image sélectionnée. La propriété `image` est retirée avant l’envoi du `POST` ou du `PATCH` : aucun fichier n’est téléversé vers l’API.
 
-### Branches principales
+Cette affiche locale peut donc disparaître lors d’une nouvelle lecture du catalogue ou d’un changement de page. Les images déjà fournies par l’API restent utilisables. Le fichier `assets/images/image.png` sert de remplacement lorsqu’aucune affiche n’est disponible.
 
-- `main` : version stable du projet
-- `develop` : branche d'intégration des fonctionnalités
+Le champ accepte les extensions JPG, JPEG, PNG et WEBP. La limite de **2 Mo** indiquée dans le formulaire n’est pas encore contrôlée par le JavaScript.
 
-### Branches de fonctionnalités
-
-Exemples :
+## Structure actuelle du projet
 
 ```text
-feature/layout
-feature/responsive
-feature/fetch-shows
-feature/display-shows
-feature/search-shows
-feature/filter-by-genre
-feature/pagination
-feature/add-show
-feature/form-validation
-feature/local-storage
-feature/show-details
+SerieScope/
+├── index.html
+├── details.html
+├── main.js
+├── src/
+│   ├── api.js
+│   └── serieService.js
+├── data/
+│   └── store.js
+├── ui/
+│   ├── cards.js
+│   ├── form.js
+│   ├── filters.js
+│   ├── notify.js
+│   └── details.js
+├── js/
+│   └── script.js
+├── assets/
+│   └── images/
+│       ├── catalogue.png
+│       ├── image.png
+│       └── jira.png
+└── README.md
 ```
 
-Les fonctionnalités sont développées dans des branches dédiées avant leur intégration par Pull Requests.
+| Fichier | Rôle |
+| --- | --- |
+| [index.html](./index.html) | Formulaire, filtres, catalogue et messages. |
+| [main.js](./main.js) | Chargement du catalogue, événements du formulaire et opérations d’ajout, modification et suppression. |
+| [src/api.js](./src/api.js) | Configuration de l’instance Axios. |
+| [src/serieService.js](./src/serieService.js) | Requêtes HTTP vers l’API. |
+| [data/store.js](./data/store.js) | État partagé et restauration des filtres sauvegardés. |
+| [ui/cards.js](./ui/cards.js) | Création et affichage des cartes. |
+| [ui/form.js](./ui/form.js) | Validation, lecture, préremplissage et remise à zéro du formulaire. |
+| [ui/filters.js](./ui/filters.js) | Choix des filtres, événements, sauvegarde locale et réinitialisation. |
+| [ui/notify.js](./ui/notify.js) | Affichage et suppression des erreurs de validation près des champs. |
+| [details.html](./details.html) et [ui/details.js](./ui/details.js) | Structure et chargement de la fiche détaillée. |
+| [js/script.js](./js/script.js) | Ancienne version utilisant TVmaze, `fetch()` et une sauvegarde locale du catalogue. Son import est commenté. |
 
----
+Le parcours principal est : **événement utilisateur → service Axios → API → `state.series` → affichage des cartes**.
 
-## 📊 Organisation avec Jira
+L’ancienne pagination et l’ancienne modale restent dans `index.html`, mais elles ne sont pas utilisées par le JavaScript actif. Les détails s’ouvrent désormais dans `details.html`.
 
-Le projet utilise **Jira** pour organiser et suivre les tâches de développement.
+## Technologies
 
-![Tableau Jira SérieScope](./assets/images/jira.png)
+- **HTML5** et **Tailwind CSS v4** pour la structure et la mise en page responsive.
+- **JavaScript Vanilla ES6+** et les modules ES pour le comportement de l’application.
+- **Axios**, chargé par CDN, pour les requêtes HTTP.
+- **API REST SérieScope** pour la persistance des séries.
+- **localStorage** et **JSON** pour mémoriser les filtres.
+- **Git / GitHub** pour le versionnement ; **Jira** pour l’organisation prévue dans le brief.
 
-Les tâches sont réparties entre :
+## Installation et lancement
 
-- initialisation du projet ;
-- conception des maquettes Figma ;
-- structure HTML ;
-- intégration Tailwind CSS ;
-- responsive design ;
-- récupération des données TVmaze ;
-- affichage dynamique des séries ;
-- recherche par titre ;
-- filtrage par genre ;
-- réinitialisation des filtres ;
-- pagination ;
-- formulaire d'ajout ;
-- validation des champs ;
-- ajout dynamique d'une série ;
-- gestion des images ;
-- sauvegarde locale ;
-- fiche détaillée ;
-- tests et corrections ;
-- documentation et déploiement.
+1. Cloner le dépôt :
 
-Les statuts utilisés sont :
+   ```bash
+   git clone https://github.com/itsemmax/SerieScope.git
+   cd SerieScope
+   ```
 
-- À faire
-- En cours
-- En revue
-- Terminé
+2. Ouvrir le dossier dans Visual Studio Code.
+3. Vérifier la valeur de `X-Learner` dans `src/api.js` pour utiliser l’espace souhaité.
+4. Lancer `index.html` avec un serveur HTTP local, par exemple l’extension **Live Server**.
 
----
+Il n’y a pas de dépendances npm à installer ni de compilation à lancer. Axios et Tailwind sont chargés par CDN. Une connexion Internet est nécessaire pour charger ces bibliothèques, accéder à l’API et récupérer les affiches distantes.
 
-## 🚀 Installation et lancement
+Ouvrir le projet avec le serveur local plutôt qu’en double-cliquant sur le fichier HTML, car le code utilise des modules JavaScript.
 
-### 1. Cloner le dépôt
+## Organisation du travail
 
-```bash
-git clone URL_DU_DEPOT_GITHUB
-```
+Le brief prévoit de poursuivre le dépôt SérieScope existant avec :
 
-### 2. Accéder au projet
+- `main` pour la version stable ;
+- `develop` pour l’intégration ;
+- une branche par fonctionnalité, créée depuis `develop` ;
+- une Pull Request par branche vers `develop`, avec des commits clairs ;
+- une mise à jour des tâches dans Jira.
 
-```bash
-cd SerieScope
-```
+Exemples de branches : `feature/axios-service`, `feature/server-filters`, `feature/add-serie`, `feature/edit-serie` et `feature/delete-serie`.
+taillée est déjà présente.
 
-### 3. Lancer un serveur local
+## Vérifications manuelles à effectuer
 
-Il est recommandé d'utiliser **Live Server** dans Visual Studio Code.
+Ces scénarios servent à contrôler la version et à préparer la démonstration ; ils ne constituent pas un rapport de tests déjà exécutés.
 
-### 4. Ouvrir l'application
+1. Ouvrir l’onglet **Réseau** des DevTools et vérifier les appels à `/api/series`, leurs méthodes et l’en-tête `X-Learner`.
+2. Combiner recherche, genre et langue ; vérifier les paramètres dans l’URL et le message lorsque la réponse est vide.
+3. Recharger la page : les critères doivent rester remplis. Utiliser **Réinitialiser**, puis recharger pour vérifier leur suppression.
+4. Essayer un formulaire invalide, puis ajouter une série valide. Recharger la page pour vérifier sa présence dans l’API.
+5. Modifier une série, vérifier le `PATCH`, puis recharger. Tester également **Annuler**.
+6. Annuler une suppression, puis en confirmer une et vérifier le `DELETE` ainsi que la disparition de la série après rechargement.
+7. Ouvrir une fiche détaillée ; tester aussi une URL sans identifiant et un identifiant inexistant.
+8. Simuler un réseau lent et le mode hors ligne dans les DevTools pour observer les messages de chargement et d’erreur.
+9. Vérifier la navigation au clavier et l’affichage sur mobile, tablette et ordinateur.
 
-```text
-index.html
-```
+## Cadre pédagogique
 
-L'application charge les séries depuis l'API TVmaze lors de la première récupération.
+**Brief :** SérieScope — Catalogue de séries (2/2), connexion d’une application Web à des services et données externes.
 
-Une connexion Internet est nécessaire pour accéder à l'API et charger Tailwind CSS et Font Awesome depuis leurs CDN.
-
----
-
-## 🌐 Déploiement
-
-L'application SérieScope peut être déployée sur Vercel.
-
-🔗 **Application déployée :** [(https://seriescope.vercel.app/)]
-
-🔗 **Dépôt GitHub :** [(https://github.com/itsemmax/SerieScope)]
-
----
-
-## 📱 Responsive Design
-
-L'interface est conçue pour s'adapter aux différents formats d'écran :
-
-- 📱 Mobile
-- 📲 Tablette
-- 💻 Desktop
-
-Tailwind CSS permet d'adapter :
-
-- la grille des cartes ;
-- les champs du formulaire ;
-- les filtres ;
-- les boutons ;
-- la pagination ;
-- la fenêtre modale ;
-- les espacements et les tailles des éléments.
-
-La grille affiche :
-
-- 1 colonne sur mobile ;
-- 2 colonnes sur tablette ;
-- 3 colonnes sur les grands écrans.
-
----
-
-## 🧠 Compétences développées
-
-Ce projet m'a permis de pratiquer et de renforcer :
-
-- JavaScript Vanilla ES6+ ;
-- manipulation du DOM ;
-- création dynamique d'éléments HTML ;
-- événements avec `addEventListener()` ;
-- récupération de données avec `fetch()` ;
-- programmation asynchrone avec `async/await` ;
-- gestion des erreurs avec `try...catch` ;
-- manipulation des objets imbriqués ;
-- manipulation des tableaux avec `forEach()`, `filter()`, `map()`, `some()` et `slice()` ;
-- utilisation de `includes()` ;
-- recherche et filtrage combinés ;
-- pagination ;
-- validation des formulaires ;
-- gestion des fichiers avec `URL.createObjectURL()` ;
-- sauvegarde avec `JSON.stringify()` ;
-- récupération avec `JSON.parse()` ;
-- utilisation de `localStorage` ;
-- affichage des informations manquantes avec des valeurs de remplacement ;
-- nettoyage des balises HTML avec `replace()` ;
-- création d'une fenêtre modale responsive avec `<dialog>` ;
-- gestion du défilement et de la fermeture d'une fenêtre modale ;
-- responsive design avec Tailwind CSS ;
-- GitFlow et Pull Requests ;
-- organisation des tâches avec Jira.
-
----
-
-## 👩‍💻 Réalisation
-
-Projet réalisé individuellement dans le cadre de la formation **Développeur Web et Web Mobile**.
-
-**Projet :** SérieScope — Catalogue de séries TV
-
-**Contexte :** Simplon / YouCode
-
-**Durée :** 5 jours
-
-**Date de lancement :** 09 novembre 2026
-
-**Date de rendu :** 13 novembre 2026
+- Travail individuel.
+- Durée annoncée : **4 jours**, environ **20 heures**.
+- Lancement prévu : **16 novembre 2026**.
+- Rendu prévu : **20 novembre 2026 à 17 h**.
+- Évaluation : **15 minutes** de présentation — démonstration, explication du code et questions — puis **45 minutes** de mise en situation.
