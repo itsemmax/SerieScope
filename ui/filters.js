@@ -48,25 +48,17 @@ export function remplirFiltres(liste) {
     filtre_langue.value = state.filters.language;
 }
 
-function appliquerFiltres() {
+function rechercherFiltrer() {
+    state.filters.name = recherche.value.trim();
+    state.filters.genre = filtre_genre.value;
+    state.filters.language = filtre_langue.value;
     localStorage.setItem("filters", JSON.stringify(state.filters));
     chargerSeries();
 }
 
-recherche.addEventListener("input", () => {
-    state.filters.name = recherche.value.trim();
-    appliquerFiltres();
-});
-
-filtre_genre.addEventListener("change", () => {
-    state.filters.genre = filtre_genre.value;
-    appliquerFiltres();
-});
-
-filtre_langue.addEventListener("change", () => {
-    state.filters.language = filtre_langue.value;
-    appliquerFiltres();
-});
+recherche.addEventListener("input", rechercherFiltrer);
+filtre_genre.addEventListener("change", rechercherFiltrer);
+filtre_langue.addEventListener("change", rechercherFiltrer);
 
 btn_reinitialiser.addEventListener("click", () => {
     state.filters = { name: "", genre: "", language: "" };
