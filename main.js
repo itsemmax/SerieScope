@@ -102,6 +102,8 @@ form.addEventListener("submit",async (e)=>{
         console.error(error);
         alert("Erreur lors de l'enregistrement de la série.");
     }
+    btn_ajouter.disabled = false;
+    btn_annuler.disabled = false;
 });
 
 btn_annuler.addEventListener("click", () => {
