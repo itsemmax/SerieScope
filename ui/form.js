@@ -56,7 +56,6 @@ export function recupererValeurs() {
     return nouvelleSerie;
 }
 export function remplir_form(serie){
-    reinitialiser_form();
     titre.value = serie.name || "";
     langue_serie.value = serie.language || "";
     genre_serie.value = (serie.genres || []).join(", ");
@@ -64,6 +63,7 @@ export function remplir_form(serie){
     titre_formulaire.textContent = "Modifier une série";
     btn_ajouter.textContent = "Enregistrer les modifications";
     btn_annuler.hidden = false;
+    reinitialiser_form();
     window.scrollTo(0, 0);
 }
 

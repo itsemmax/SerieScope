@@ -97,8 +97,7 @@ export function afficher(liste){
         btn_modifier.dataset.action = "modifier";
         btn_modifier.className = "bg-blue-950 bg-[#333333] text-white px-4 py-2 rounded-md text-sm";
         btn_modifier.addEventListener("click", () =>{
-             modifierSerie(serie)});
-
+            modifierSerie(serie)});
         let btn_supprimer = document.createElement("button");
         btn_supprimer.textContent = "Supprimer";
         btn_supprimer.type = "button";

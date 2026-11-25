@@ -68,10 +68,8 @@ form.addEventListener("submit",async (e)=>{
             if (image) {
                 serieModifiee.image = image;
             }
-            state.series = state.series.map((item) =>
-                item.id === serieEnModification.id ? serieModifiee : item
-            );
-        }else {
+            state.series = state.series.map((item) => item.id === serieEnModification.id ? serieModifiee : item);
+        }else{
             let serieCreee = await create(serie);
             if (image){
                 serieCreee.image = image;
@@ -84,9 +82,6 @@ form.addEventListener("submit",async (e)=>{
     }catch(error){
         console.error(error);
         alert("Erreur lors de l'enregistrement de la série.");
-    }finally{
-        btn_ajouter.disabled = false;
-        btn_annuler.disabled = false;
     }
 });
 
