@@ -4,6 +4,7 @@ import {afficher} from "./ui/cards.js";
 import {state} from "./data/store.js";
 import {validation,recupererValeurs,remplir_form,reinitialiser_form} from "./ui/form.js"
 import { supprimerErreur } from "./ui/notify.js";
+import { remplirFiltres } from "./ui/filters.js";
 
 const message_erreur_api = document.querySelector("#message-erreur-api");
 const form = document.querySelector("#formulaire-serie");
@@ -19,13 +20,26 @@ const btn_ajouter = document.querySelector("#btn-ajouter");
 const btn_annuler = document.querySelector("#btn-annuler");
 
 let serieEnModification = null;
+let numeroRequete = 0;
 
-async function chargerSeries() {
+export async function chargerSeries(actualiserFiltres = false) {
+    const numero = ++numeroRequete;
     try{
-        state.series = await getAll();
+        if (actualiserFiltres) {
+            const toutesLesSeries = await getAll();
+            remplirFiltres(toutesLesSeries);
+        }
+        const series = await getAll(state.filters);
+        if (numero !== numeroRequete) {
+            return;
+        }
+        state.series = series;
         message_erreur_api.hidden = true;
         afficher(state.series);
     }catch (error){
+        if (numero !== numeroRequete) {
+            return;
+        }
         if (error.code === "ECONNABORTED") {
             message_erreur_api.textContent = "Le serveur met trop de temps à répondre.";
         }
@@ -76,7 +90,12 @@ form.addEventListener("submit",async (e)=>{
             }
             state.series.push(serieCreee);
         }
-        afficher(state.series);
+        if (state.filters.name || state.filters.genre || state.filters.language) {
+            await chargerSeries(true);
+        } else {
+            remplirFiltres(state.series);
+            afficher(state.series);
+        }
         serieEnModification = null;
         reinitialiser_form();
     }catch(error){
@@ -100,8 +119,8 @@ export async function supprimerSerie(serie) {
             serieEnModification = null;
             reinitialiser_form();
         }
-        await chargerSeries();
-    }catch(error) {
+        await chargerSeries(true);
+    }catch(error){
         console.error(error);
         alert("Erreur lors de la suppression");
     }
@@ -110,4 +129,4 @@ export function modifierSerie(serie){
     serieEnModification = serie;
     remplir_form(serie);
 }
-chargerSeries();
+chargerSeries(true);
