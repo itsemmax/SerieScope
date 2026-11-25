@@ -2,45 +2,11 @@ import {supprimerSerie,modifierSerie} from "../main.js";
 const liste_series = document.querySelector("#liste-series");
 const etat_vide = document.querySelector("#etat-vide");
 const nombre_series = document.querySelector("#nombre-series");
-const filtre_genre = document.querySelector("#filtre-genre");
-const filtre_langue = document.querySelector("#filtre-langue");
-
-function afficherGenres_languages(liste) {
-    const genre_selectionne = filtre_genre.value;
-    const langue_selectionnee = filtre_langue.value;
-    filtre_genre.innerHTML = '<option value="">Tous les genres</option>';
-    filtre_langue.innerHTML = '<option value="">Toutes les langues</option>';
-    let genres = [];
-    let languages =[];
-    liste.forEach((serie) => {
-        (serie.genres || []).forEach((genre) => {
-            if (!genres.includes(genre)) {
-                let option = document.createElement("option");
-                option.value = genre;
-                option.textContent = genre;
-                filtre_genre.append(option);
-                genres.push(genre);
-            }
-        });
-    });
-    liste.forEach((serie) => {
-            if (serie.language && !languages.includes(serie.language)) {
-                languages.push(serie.language);
-                let option = document.createElement("option");
-                option.value = serie.language;
-                option.textContent = serie.language;
-                filtre_langue.append(option);
-        };
-    });
-    filtre_genre.value = genres.includes(genre_selectionne) ? genre_selectionne : "";
-    filtre_langue.value = languages.includes(langue_selectionnee) ? langue_selectionnee : "";
-}
 
 export function afficher(liste){
     liste_series.innerHTML = "";
 
     nombre_series.textContent = liste.length + " séries affichées";
-    afficherGenres_languages(liste);
     
     if (liste.length === 0) {
         etat_vide.hidden = false;

@@ -1,8 +1,8 @@
 import {myax } from "./api.js";
 
-export async function getAll() {
+export async function getAll(filters = {}) {
     try {
-        const response = await myax.get("/series");
+        const response = await myax.get("/series", { params: filters });
         return response.data;
     }catch(error){
         throw error;
