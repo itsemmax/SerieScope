@@ -260,7 +260,12 @@ Le brief prévoit de poursuivre le dépôt SérieScope existant avec :
 - une mise à jour des tâches dans Jira.
 
 Exemples de branches : `feature/axios-service`, `feature/server-filters`, `feature/add-serie`, `feature/edit-serie` et `feature/delete-serie`.
-taillée est déjà présente.
+
+### Capture du tableau Jira
+
+<!-- Remplacer assets/images/jira.png par une capture à jour du tableau Jira. -->
+
+![Tableau Jira — SérieScope](./assets/images/jira.png)
 
 ## Vérifications manuelles à effectuer
 
