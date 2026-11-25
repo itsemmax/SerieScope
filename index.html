@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -6,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SérieScope — Catalogue des séries</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/js/all.min.js" defer></script>
-    <script src="js/script.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.21.1/dist/axios.min.js"></script>
+    <script type="module" src="main.js"></script>
+    <!-- <script type="module" src="./js/script.js"></script> -->
 </head>
 
 <body class="bg-[#111111] text-white">
@@ -29,7 +29,7 @@
         </section>
         <section class="bg-[#1B1B1B] border border-[#333333] rounded-xl p-5 mb-8">
             <div class="mb-5">
-                <h2 class="text-lg font-semibold">Ajouter une série</h2>
+                <h2 id="titre-formulaire" class="text-lg font-semibold">Ajouter une série</h2>
                 <p class="text-[#999999] text-xs mt-1"> Les champs marqués d'un * sont obligatoires.</p>
             </div>
             <form id="formulaire-serie">
@@ -43,6 +43,24 @@
                         <label for="genre-serie" class="block text-sm font-medium mb-2"> Genre(s) * <span class="text-[#AAAAAA] text-xs font-normal">séparés par des virgules</span></label>
                         <input type="text" id="genre-serie" name="genre" placeholder="Ex. Drama, Comédie" class="w-full bg-[#151515] border border-[#383838] rounded-md px-3 py-3 text-sm outline-none">
                         <p id="erreur-genre" class="text-red-400 text-xs mt-1"></p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="langue-serie" class="block text-sm font-medium mb-2">
+                            Langue *
+                        </label>
+                        <select id="langue-serie" name="langue"
+                            class="w-full bg-[#151515] border border-[#383838] rounded-md px-3 py-3 text-sm">
+                            <option value="">Sélectionner une langue</option>
+                            <option value="English">Anglais</option>
+                            <option value="French">Français</option>
+                            <option value="Spanish">Espagnol</option>
+                            <option value="Japanese">Japonais</option>
+                            <option value="Korean">Coréen</option>
+                            <option value="German">Allemand</option>
+                            <option value="Arabic">Arabe</option>
+                            <option value="Italian">Italien</option>
+                        </select>
+                        <p id="erreur-langue" class="text-red-400 text-xs mt-1"></p>
                     </div>
                     <div class="md:col-span-2">
                         <label for="image-serie" class="block text-sm font-medium mb-2">Affiche de la série</label>
@@ -59,6 +77,9 @@
                     <i class="fa-solid fa-plus mr-2"></i>
                     Ajouter la série
                 </button>
+                <button id="btn-annuler" type="button" hidden class="w-full md:w-auto mt-2 md:mt-0 md:ml-2 bg-[#333333] text-white rounded-md px-5 py-3 text-sm font-semibold">
+                    Annuler
+                </button>
 
             </form>
         </section>
@@ -69,16 +90,23 @@
                 <p class="text-[#999999] text-sm">Recherche par nom ou explore un genre.</p>
             </div>
             <div class="bg-[#1B1B1B] border border-[#333333] rounded-xl p-4 mb-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                         <label for="recherche" class="block text-sm font-medium mb-2">Recherche</label>
                         <input type="search" id="recherche" placeholder="Ex. Breaking Bad" class="w-full bg-[#151515] border border-[#383838] rounded-md px-3 py-3 text-sm">
                     </div>
+                     <div>
+                        <label for="filtre-langue" class="block text-sm font-medium mb-2">
+                            Langue
+                        </label>
+                        <select id="filtre-langue" class="w-full bg-[#151515] border border-[#383838] rounded-md px-3 py-3 text-sm">
+                            <option value="">Toutes les langues</option>
+                        </select>
+                    </div>
                     <div>
                         <label for="filtre-genre" class="block text-sm font-medium mb-2">Genre</label>
-
                         <div class="flex flex-col sm:flex-row gap-2">
-                            <select id="filtre-genre" class="flex-1 min-w-0 bg-[#151515] border border-[#383838] rounded-md px-3 py-3 text-sm">
+                            <select id="filtre-genre" class="w-full bg-[#151515] border border-[#383838] rounded-md px-3 py-3 text-sm">
                                 <option value="">Tous les genres</option>
                             </select>
                             <button id="btn-reinitialiser" type="button" class="bg-[#242424] border border-[#383838] rounded-md px-4 py-3 text-sm font-medium">
@@ -87,7 +115,6 @@
                             </button>
                         </div>
                     </div>
-
                 </div>
             </div>
             <p id="nombre-series" class="text-[#999999] text-sm mb-4"> 0 série affichée</p>
@@ -117,7 +144,7 @@
     <footer class="border-t border-[#303030] mt-10 py-5 text-center text-[#777777] text-xs">SérieScope — Catalogue de séries TV</footer>
     
 <dialog id="modal-details"
-    class="m-auto w-[90%] max-w-xl rounded-xl bg-[#1B1B1B] text-white p-6 border border-[#383838] backdrop:bg-black/80">
+    class="m-auto w-[90%] max-w-xl rounded-xl bg-[#1B1B1B] text-white p-6 border border-[#383838] backdrop:bg-black/100">
 
     <div class="flex justify-between items-start mb-5">
         <div>
