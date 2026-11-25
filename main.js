@@ -7,6 +7,7 @@ import { supprimerErreur } from "./ui/notify.js";
 import { remplirFiltres } from "./ui/filters.js";
 
 const message_erreur_api = document.querySelector("#message-erreur-api");
+const message_chargement = document.querySelector("#message-chargement");
 const form = document.querySelector("#formulaire-serie");
 const titre = document.querySelector("#titre");
 const genre_serie = document.querySelector("#genre-serie");
@@ -22,24 +23,24 @@ const btn_annuler = document.querySelector("#btn-annuler");
 let serieEnModification = null;
 let numeroRequete = 0;
 
-export async function chargerSeries(actualiserFiltres = false) {
-    const numero = ++numeroRequete;
+async function chargerFiltres() {
+    try {
+        const series = await getAll();
+        remplirFiltres(series);
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+export async function chargerSeries() {
+    message_chargement.hidden = false;
+    message_erreur_api.hidden = true;
     try{
-        if (actualiserFiltres) {
-            const toutesLesSeries = await getAll();
-            remplirFiltres(toutesLesSeries);
-        }
         const series = await getAll(state.filters);
-        if (numero !== numeroRequete) {
-            return;
-        }
         state.series = series;
         message_erreur_api.hidden = true;
         afficher(state.series);
     }catch (error){
-        if (numero !== numeroRequete) {
-            return;
-        }
         if (error.code === "ECONNABORTED") {
             message_erreur_api.textContent = "Le serveur met trop de temps à répondre.";
         }
@@ -49,6 +50,7 @@ export async function chargerSeries(actualiserFiltres = false) {
         message_erreur_api.hidden = false;
         console.error(error);
     }
+    message_chargement.hidden = true;
 }
 titre.addEventListener("input", () => {
     supprimerErreur(titre, erreur_titre);
@@ -69,8 +71,6 @@ form.addEventListener("submit",async (e)=>{
     if(!validation()){
         return;
     }
-    btn_ajouter.disabled = true;
-    btn_annuler.disabled = true;
     try{
         let serie = recupererValeurs();
         let image = serie.image || serieEnModification?.image;
@@ -91,7 +91,8 @@ form.addEventListener("submit",async (e)=>{
             state.series.push(serieCreee);
         }
         if (state.filters.name || state.filters.genre || state.filters.language) {
-            await chargerSeries(true);
+            await chargerFiltres();
+            await chargerSeries();
         } else {
             remplirFiltres(state.series);
             afficher(state.series);
@@ -121,7 +122,8 @@ export async function supprimerSerie(serie) {
             serieEnModification = null;
             reinitialiser_form();
         }
-        await chargerSeries(true);
+        await chargerFiltres();
+        await chargerSeries();
     }catch(error){
         console.error(error);
         alert("Erreur lors de la suppression");
@@ -131,4 +133,5 @@ export function modifierSerie(serie){
     serieEnModification = serie;
     remplir_form(serie);
 }
-chargerSeries(true);
+chargerFiltres();
+chargerSeries();
