@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détails de la série — SérieScope</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.21.1/dist/axios.min.js"></script>
+    <script type="module" src="./ui/details.js"></script>
+</head>
+
+<body class="bg-[#111111] text-white min-h-screen flex flex-col">
+    <header class="border-b border-[#303030]">
+        <div class="max-w-5xl mx-auto px-4 md:px-8 h-16 flex items-center">
+            <a href="index.html" class="font-bold text-lg">Sériescope</a>
+        </div>
+    </header>
+
+    <main class="max-w-5xl w-full mx-auto px-4 md:px-8 py-8 flex-1">
+        <a href="index.html" class="inline-block bg-[#333333] hover:bg-[#444444] px-4 py-2 rounded-md mb-6">Retour au catalogue</a>
+
+        <p id="chargement" class="text-[#AAAAAA] py-8">Chargement de la série…</p>
+        <p id="message-erreur" class="text-[#AAAAAA] py-8" hidden></p>
+
+        <article id="details-serie" class="bg-[#1B1B1B] border border-[#333333] rounded-xl p-5 md:p-8" hidden>
+            <h1 id="detail-titre" class="text-2xl md:text-3xl font-bold mb-6 break-words"></h1>
+
+            <div class="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-6 items-center">
+                <img id="detail-image" src="assets/images/image.png" alt="Affiche de la série"
+                    class="w-full max-w-[220px] h-auto rounded-lg mx-auto md:mx-0">
+
+                <dl class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div>
+                        <dt class="text-[#AAAAAA] text-sm mb-1">Première diffusion</dt>
+                        <dd id="detail-premiere"></dd>
+                    </div>
+                    <div>
+                        <dt class="text-[#AAAAAA] text-sm mb-1">Dernière diffusion</dt>
+                        <dd id="detail-fin"></dd>
+                    </div>
+                    <div>
+                        <dt class="text-[#AAAAAA] text-sm mb-1">Note moyenne</dt>
+                        <dd id="detail-note"></dd>
+                    </div>
+                    <div id="site-officiel" hidden>
+                        <dt class="text-[#AAAAAA] text-sm mb-1">Site officiel</dt>
+                        <dd><a id="detail-site" class="underline hover:text-[#CCCCCC]">Visiter le site officiel</a></dd>
+                    </div>
+                </dl>
+            </div>
+
+            <section class="border-t border-[#383838] mt-6 pt-6" aria-labelledby="titre-description">
+                <h2 id="titre-description" class="text-lg font-semibold mb-3">Résumé</h2>
+                <p id="detail-description" class="text-[#CCCCCC] leading-7 whitespace-pre-line break-words"></p>
+            </section>
+        </article>
+    </main>
+
+    <footer class="border-t border-[#303030] py-5 text-center text-[#999999] text-sm">SérieScope — Catalogue de séries TV</footer>
+</body>
+</html>
